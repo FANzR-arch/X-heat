@@ -15,7 +15,8 @@ This implementation is original. Similar GitHub projects were reviewed for produ
 5. 选择这个项目文件夹。
 6. 打开或刷新 `https://x.com`。
 7. 每条帖子右上角的更多按钮旁会出现热度徽章，例如 `🔥 1.2k/h`。
-8. 颜色越深、越多彩，表示热度越高；鼠标悬停可以查看回复、转发、喜欢、查看数、热度分和发布时间明细。
+8. 如果插件已经记录过同一条帖子，徽章会额外显示加速信号，例如 `↗2.1x`。
+9. 颜色越深、越多彩，表示潜力越高；鼠标悬停可以查看速度、最近速度、加速度、页面排名、互动质量和基础指标。
 
 弹窗里的开关可以临时关闭或重新启用热度徽章。
 
@@ -29,7 +30,16 @@ This implementation is original. Similar GitHub projects were reviewed for produ
 
 ## How the score works
 
-The content script scans `article[data-testid="tweet"]` nodes and reads visible metric labels. It gives more weight to replies and reposts, includes likes and views, then divides the weighted engagement by post age to show a readable velocity such as `105/h`, `1.2k/h`, or `10k/h`.
+The content script scans `article[data-testid="tweet"]` nodes and reads visible metric labels. It gives more weight to replies and reposts, includes likes and views, then divides weighted impact by post age to show a readable velocity such as `105/h`, `1.2k/h`, or `10k/h`.
+
+The current potential model uses four local signals:
+
+- `velocity`: weighted impact per hour
+- `quality`: weighted engagement divided by views
+- `acceleration`: recent velocity from locally stored snapshots
+- `page rank`: the post's velocity rank among currently visible posts
+
+The extension stores only small local snapshots in `chrome.storage.local`; it does not call X private APIs or send post data to a server.
 
 Heat levels:
 

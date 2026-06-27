@@ -2,6 +2,19 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
+const FIXED_NOW = new Date("2026-06-27T12:00:00Z").getTime();
+const RealDate = Date;
+
+class FixedDate extends RealDate {
+  constructor(...args) {
+    super(...(args.length ? args : [FIXED_NOW]));
+  }
+
+  static now() {
+    return FIXED_NOW;
+  }
+}
+
 class FakeClassList {
   constructor() {
     this.values = new Set();
@@ -124,6 +137,7 @@ class FakeBadge extends FakeNode {
     super();
     this.iconNode = new FakeNode({ text: "🌡️" });
     this.rateNode = new FakeNode({ text: "0/h" });
+    this.trendNode = new FakeNode({ text: "" });
   }
 
   set innerHTML(value) {
@@ -137,6 +151,7 @@ class FakeBadge extends FakeNode {
   querySelector(selector) {
     if (selector === ".xheat-badge__icon") return this.iconNode;
     if (selector === ".xheat-badge__rate") return this.rateNode;
+    if (selector === ".xheat-badge__trend") return this.trendNode;
     return null;
   }
 }
@@ -149,7 +164,8 @@ class FakeArticle extends FakeNode {
       retweet: new FakeNode({ text: "3", attrs: { "aria-label": "3 reposts" } }),
       like: new FakeNode({ text: "45", attrs: { "aria-label": "45 likes" } }),
       analytics: new FakeNode({ text: "1.2K", attrs: { href: "/user/status/1/analytics" } }),
-      time: new FakeNode({ attrs: { datetime: new Date(Date.now() - 2 * 3600000).toISOString() } })
+      statusLink: new FakeNode({ attrs: { href: "/demo/status/123" } }),
+      time: new FakeNode({ attrs: { datetime: new RealDate(FIXED_NOW - 2 * 3600000).toISOString() } })
     };
     this.metricNodes.time.dateTime = this.metricNodes.time.attrs.datetime;
     this.actionContainer = new FakeNode();
@@ -178,6 +194,9 @@ class FakeArticle extends FakeNode {
   querySelectorAll(selector) {
     if (selector === "[aria-label]") {
       return [this.metricNodes.reply, this.metricNodes.retweet, this.metricNodes.like];
+    }
+    if (selector === 'a[href*="/status/"]') {
+      return [this.metricNodes.statusLink];
     }
     if (selector.includes("[aria-label")) {
       return [];
@@ -221,7 +240,7 @@ const document = {
 const timers = [];
 const context = {
   console,
-  Date,
+  Date: FixedDate,
   Intl,
   Math,
   Number,
@@ -247,6 +266,26 @@ const context = {
       sync: {
         get(defaults, callback) {
           callback(defaults);
+        }
+      },
+      local: {
+        get(defaults, callback) {
+          callback({
+            ...defaults,
+            xheatSnapshots: {
+              123: [
+                {
+                  t: FIXED_NOW - 10 * 60000,
+                  impact: 80,
+                  perHour: 50
+                }
+              ]
+            }
+          });
+        },
+        set(values, callback) {
+          context.lastLocalStorageSet = values;
+          callback();
         }
       },
       onChanged: {
@@ -278,21 +317,41 @@ setImmediate(() => {
     throw new Error("Expected inline placement to avoid fallback article positioning.");
   }
 
-  if (badge.rateNode.textContent !== "105/h") {
+  if (badge.rateNode.textContent !== "65/h") {
     throw new Error(`Expected visible heat velocity, got ${badge.rateNode.textContent}.`);
+  }
+
+  if (badge.trendNode.textContent !== "↗4.6x") {
+    throw new Error(`Expected visible acceleration trend, got ${badge.trendNode.textContent}.`);
   }
 
   if (badge.iconNode.textContent !== "🔥") {
     throw new Error(`Expected warm heat icon, got ${badge.iconNode.textContent}.`);
   }
 
-  if (badge.dataset.level !== "warm") {
-    throw new Error(`Expected warm heat level, got ${badge.dataset.level}.`);
+  if (badge.dataset.level !== "hot") {
+    throw new Error(`Expected hot heat level, got ${badge.dataset.level}.`);
   }
 
-  if (!badge.title.includes("速度: 105/h") || !badge.title.includes("回复: 12") || !badge.title.includes("查看: 1,200")) {
+  if (!badge.title.includes("潜力:") || !badge.title.includes("速度: 65/h") || !badge.title.includes("最近: 294/h")) {
+    throw new Error(`Expected badge tooltip to include potential and velocity signals, got: ${badge.title}`);
+  }
+
+  if (!badge.title.includes("趋势: ↗ 4.6x")) {
+    throw new Error(`Expected badge tooltip to include acceleration, got: ${badge.title}`);
+  }
+
+  if (!badge.title.includes("互动质量: 9.3%") || !badge.title.includes("传播占比: 5%") || !badge.title.includes("讨论占比: 20%")) {
+    throw new Error(`Expected badge tooltip to include quality signals, got: ${badge.title}`);
+  }
+
+  if (!badge.title.includes("回复: 12") || !badge.title.includes("查看: 1,200")) {
     throw new Error(`Expected badge tooltip to include parsed metrics, got: ${badge.title}`);
   }
 
-  console.log(`smoke ok: rate=${badge.rateNode.textContent}, level=${badge.dataset.level}`);
+  if (!context.lastLocalStorageSet?.xheatSnapshots?.["123"]) {
+    throw new Error("Expected content script to persist an updated snapshot.");
+  }
+
+  console.log(`smoke ok: rate=${badge.rateNode.textContent}, trend=${badge.trendNode.textContent}, level=${badge.dataset.level}`);
 });
