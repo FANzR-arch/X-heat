@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>X Heat</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="panel">
+      <header class="header">
+        <div>
+          <h1>X Heat</h1>
+          <p>帖子热度徽章</p>
+        </div>
+        <label class="switch" title="启用或关闭热度徽章">
+          <input id="enabled" type="checkbox">
+          <span></span>
+        </label>
+      </header>
+
+      <section class="score">
+        <span class="score__label">计算方式</span>
+        <p>回复、转发、喜欢、查看数会按权重合成，并按发布时间做速度修正。</p>
+      </section>
+
+      <section class="legend">
+        <div><span class="dot dot--calm"></span>0-41</div>
+        <div><span class="dot dot--warm"></span>42-71</div>
+        <div><span class="dot dot--hot"></span>72-89</div>
+        <div><span class="dot dot--viral"></span>90-100</div>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

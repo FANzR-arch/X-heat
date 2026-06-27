@@ -1,0 +1,10 @@
+{
+  "name": "x-heat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome/Edge extension that shows a heat score on X posts.",
+  "scripts": {
+    "test": "node --check src/content.js && node --check popup/popup.js && node --check tests/smoke.js && node -e \"const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8')); const files=[...(manifest.content_scripts||[]).flatMap((script)=>[...(script.js||[]),...(script.css||[])]),manifest.action&&manifest.action.default_popup].filter(Boolean); for (const file of files) { if (!fs.existsSync(file)) throw new Error('missing '+file); } console.log('manifest refs ok: '+files.join(', '));\" && node tests/smoke.js"
+  },
+  "devDependencies": {}
+}

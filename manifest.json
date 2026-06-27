@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "X Heat",
+  "version": "0.1.0",
+  "description": "Show a live heat score on X posts from visible engagement metrics.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://x.com/*", "https://twitter.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "X Heat"
+  }
+}
