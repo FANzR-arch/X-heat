@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "X Heat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Show a live heat score on X posts from visible engagement metrics.",
   "permissions": ["storage"],
   "host_permissions": ["https://x.com/*", "https://twitter.com/*"],

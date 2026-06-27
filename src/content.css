@@ -3,83 +3,140 @@
 }
 
 .xheat-badge {
-  position: absolute;
-  top: 10px;
-  right: 52px;
+  --xheat-bg: #eff6ff;
+  --xheat-border: #bfdbfe;
+  --xheat-text: #1d4ed8;
+  --xheat-icon-bg: rgba(29, 78, 216, 0.12);
   z-index: 30;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-width: 70px;
-  height: 26px;
-  padding: 0 9px;
-  border: 1px solid rgba(15, 20, 25, 0.14);
+  justify-content: center;
+  gap: 4px;
+  height: 22px;
+  min-width: 58px;
+  max-width: 92px;
+  padding: 0 7px 0 5px;
+  border: 1px solid var(--xheat-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #0f1419;
-  box-shadow: 0 3px 12px rgba(15, 20, 25, 0.12);
+  background: var(--xheat-bg);
+  color: var(--xheat-text);
+  box-shadow: none;
   font-family: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0;
   line-height: 1;
+  white-space: nowrap;
   pointer-events: auto;
   user-select: none;
-  backdrop-filter: blur(8px);
 }
 
-.xheat-badge::before {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #697882;
-  content: "";
+.xheat-badge--inline {
+  position: static;
+  flex: 0 0 auto;
+  margin-right: 4px;
 }
 
-.xheat-badge[data-level="warm"]::before {
-  background: #f59e0b;
+.xheat-badge--fallback {
+  position: absolute;
+  top: 8px;
+  right: 44px;
 }
 
-.xheat-badge[data-level="hot"]::before {
-  background: #ef4444;
+.xheat-badge__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--xheat-icon-bg);
+  font-size: 11px;
+  line-height: 1;
 }
 
-.xheat-badge[data-level="viral"]::before {
-  background: #db2777;
-}
-
-.xheat-badge__label {
-  color: #536471;
-  font-weight: 600;
-}
-
-.xheat-badge__score {
-  min-width: 18px;
-  color: inherit;
+.xheat-badge__rate {
+  overflow: hidden;
+  min-width: 30px;
+  max-width: 58px;
   font-variant-numeric: tabular-nums;
   text-align: right;
+  text-overflow: ellipsis;
+}
+
+.xheat-badge[data-level="cold"] {
+  --xheat-bg: #eff6ff;
+  --xheat-border: #bfdbfe;
+  --xheat-text: #1d4ed8;
+  --xheat-icon-bg: rgba(29, 78, 216, 0.12);
+}
+
+.xheat-badge[data-level="cool"] {
+  --xheat-bg: #ecfeff;
+  --xheat-border: #67e8f9;
+  --xheat-text: #0e7490;
+  --xheat-icon-bg: rgba(14, 116, 144, 0.12);
+}
+
+.xheat-badge[data-level="warm"] {
+  --xheat-bg: #fffbeb;
+  --xheat-border: #fbbf24;
+  --xheat-text: #b45309;
+  --xheat-icon-bg: rgba(180, 83, 9, 0.13);
+}
+
+.xheat-badge[data-level="hot"] {
+  --xheat-bg: #fff1ed;
+  --xheat-border: #fb7185;
+  --xheat-text: #be123c;
+  --xheat-icon-bg: rgba(190, 18, 60, 0.13);
+}
+
+.xheat-badge[data-level="viral"] {
+  --xheat-bg: linear-gradient(90deg, #e11d48, #7c3aed);
+  --xheat-border: transparent;
+  --xheat-text: #ffffff;
+  --xheat-icon-bg: rgba(255, 255, 255, 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
-  .xheat-badge {
-    border-color: rgba(239, 243, 244, 0.16);
-    background: rgba(22, 24, 28, 0.9);
-    color: #f7f9f9;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.28);
+  .xheat-badge[data-level="cold"] {
+    --xheat-bg: rgba(30, 64, 175, 0.22);
+    --xheat-border: rgba(96, 165, 250, 0.36);
+    --xheat-text: #bfdbfe;
   }
 
-  .xheat-badge__label {
-    color: #8b98a5;
+  .xheat-badge[data-level="cool"] {
+    --xheat-bg: rgba(8, 145, 178, 0.2);
+    --xheat-border: rgba(34, 211, 238, 0.36);
+    --xheat-text: #a5f3fc;
+  }
+
+  .xheat-badge[data-level="warm"] {
+    --xheat-bg: rgba(180, 83, 9, 0.2);
+    --xheat-border: rgba(251, 191, 36, 0.42);
+    --xheat-text: #fde68a;
+  }
+
+  .xheat-badge[data-level="hot"] {
+    --xheat-bg: rgba(190, 18, 60, 0.22);
+    --xheat-border: rgba(251, 113, 133, 0.42);
+    --xheat-text: #fecdd3;
   }
 }
 
 @media (max-width: 560px) {
   .xheat-badge {
-    right: 44px;
-    min-width: 58px;
-    padding: 0 7px;
+    min-width: 50px;
+    max-width: 78px;
+    padding-right: 6px;
   }
 
-  .xheat-badge__label {
-    display: none;
+  .xheat-badge--fallback {
+    right: 38px;
+  }
+
+  .xheat-badge__rate {
+    min-width: 24px;
   }
 }

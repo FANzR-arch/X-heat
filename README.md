@@ -1,8 +1,8 @@
 # X Heat
 
-X Heat is a Chrome/Edge Manifest V3 extension that adds a small heat badge to the top-right corner of each X post.
+X Heat is a Chrome/Edge Manifest V3 extension that adds a compact heat badge to the top-right action area of each X post.
 
-The extension does not call X private APIs. It reads the engagement metrics already visible in the page, then calculates a 0-100 heat score from replies, reposts, likes, views, and post age.
+The extension does not call X private APIs. It reads the engagement metrics already visible in the page, then calculates heat velocity from replies, reposts, likes, views, and post age.
 
 This implementation is original. Similar GitHub projects were reviewed for product patterns, but their code was not copied because most close matches did not publish a clear reusable license.
 
@@ -14,7 +14,8 @@ This implementation is original. Similar GitHub projects were reviewed for produ
 4. 点击“加载已解压的扩展程序”。
 5. 选择这个项目文件夹。
 6. 打开或刷新 `https://x.com`。
-7. 每条帖子右上角会出现“热度”徽章，鼠标悬停可以查看回复、转发、喜欢、查看数和发布时间修正后的明细。
+7. 每条帖子右上角的更多按钮旁会出现热度徽章，例如 `🔥 1.2k/h`。
+8. 颜色越深、越多彩，表示热度越高；鼠标悬停可以查看回复、转发、喜欢、查看数、热度分和发布时间明细。
 
 弹窗里的开关可以临时关闭或重新启用热度徽章。
 
@@ -28,16 +29,17 @@ This implementation is original. Similar GitHub projects were reviewed for produ
 
 ## How the score works
 
-The content script scans `article[data-testid="tweet"]` nodes and reads visible metric labels. The score gives more weight to replies and reposts, includes likes and views, then adjusts by post age so newer posts with fast traction surface as hotter.
+The content script scans `article[data-testid="tweet"]` nodes and reads visible metric labels. It gives more weight to replies and reposts, includes likes and views, then divides the weighted engagement by post age to show a readable velocity such as `105/h`, `1.2k/h`, or `10k/h`.
 
 Heat levels:
 
-- `0-41`: calm
-- `42-71`: warm
-- `72-89`: hot
-- `90-100`: viral
+- `🧊 cold`: low velocity
+- `🌡️ cool`: starting to move
+- `🔥 warm`: gaining traction
+- `🔥 hot`: high velocity
+- `🚀 viral`: very high velocity
 
-Hover a badge to see the metric breakdown.
+Hover a badge to see the metric breakdown and the internal 0-100 heat score.
 
 ## Files
 

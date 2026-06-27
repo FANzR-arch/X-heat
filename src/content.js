@@ -1,5 +1,5 @@
 (() => {
-  const CONTENT_SCRIPT_VERSION = "0.1.0";
+  const CONTENT_SCRIPT_VERSION = "0.2.0";
 
   const DEFAULT_SETTINGS = {
     enabled: true
@@ -7,6 +7,8 @@
 
   const BADGE_CLASS = "xheat-badge";
   const HOST_CLASS = "xheat-article-host";
+  const INLINE_CLASS = "xheat-badge--inline";
+  const FALLBACK_CLASS = "xheat-badge--fallback";
   const UPDATE_DEBOUNCE_MS = 120;
   const REFRESH_MS = 15000;
 
@@ -47,6 +49,26 @@
     }
 
     return new Intl.NumberFormat().format(value);
+  }
+
+  function compactRate(value) {
+    if (value >= 1000000000) {
+      return `${trimNumber(value / 1000000000)}b/h`;
+    }
+
+    if (value >= 1000000) {
+      return `${trimNumber(value / 1000000)}m/h`;
+    }
+
+    if (value >= 1000) {
+      return `${trimNumber(value / 1000)}k/h`;
+    }
+
+    if (value >= 10) {
+      return `${Math.round(value)}/h`;
+    }
+
+    return `${trimNumber(value)}/h`;
   }
 
   function trimNumber(value) {
@@ -236,43 +258,113 @@
       metrics.views * 0.045;
 
     const velocity = weighted / Math.pow(ageHours, 0.62);
+    const perHour = weighted / ageHours;
     const score = Math.max(0, Math.min(100, Math.round(Math.log10(velocity + 1) * 30)));
 
     return {
       score,
       weighted,
-      velocity
+      velocity,
+      perHour
     };
   }
 
-  function heatLevel(score) {
-    if (score >= 90) {
+  function heatLevel(heat) {
+    if (heat.score >= 90 || heat.perHour >= 10000) {
       return "viral";
     }
 
-    if (score >= 72) {
+    if (heat.score >= 72 || heat.perHour >= 1000) {
       return "hot";
     }
 
-    if (score >= 42) {
+    if (heat.score >= 50 || heat.perHour >= 100) {
       return "warm";
     }
 
-    return "calm";
+    if (heat.score >= 25 || heat.perHour >= 20) {
+      return "cool";
+    }
+
+    return "cold";
   }
 
-  function ensureBadge(article) {
-    let badge = article.querySelector(`:scope > .${BADGE_CLASS}`);
-    if (badge) {
-      return badge;
+  function heatIcon(level) {
+    return {
+      cold: "🧊",
+      cool: "🌡️",
+      warm: "🔥",
+      hot: "🔥",
+      viral: "🚀"
+    }[level] || "🌡️";
+  }
+
+  function findBadgeMount(article) {
+    const selectors = [
+      '[data-testid="caret"]',
+      '[aria-label="More"]',
+      '[aria-label*="More"]',
+      '[aria-label="更多"]',
+      '[aria-label*="更多"]'
+    ];
+
+    for (const selector of selectors) {
+      const target = article.querySelector(selector);
+      if (!target || target.classList?.contains?.(BADGE_CLASS)) {
+        continue;
+      }
+
+      const button = target.closest?.("button, [role='button']") || target;
+      const container = button.parentElement;
+      if (!container || container === article) {
+        continue;
+      }
+
+      if (article.contains && !article.contains(container)) {
+        continue;
+      }
+
+      return { container, before: button };
+    }
+
+    return null;
+  }
+
+  function placeBadge(article, badge) {
+    const mount = findBadgeMount(article);
+    if (mount) {
+      article.classList.remove(HOST_CLASS);
+      badge.classList.add(INLINE_CLASS);
+      badge.classList.remove(FALLBACK_CLASS);
+
+      if (badge.parentElement !== mount.container || badge.nextSibling !== mount.before) {
+        mount.container.insertBefore(badge, mount.before);
+      }
+
+      return;
     }
 
     article.classList.add(HOST_CLASS);
+    badge.classList.add(FALLBACK_CLASS);
+    badge.classList.remove(INLINE_CLASS);
+
+    if (badge.parentElement !== article) {
+      article.appendChild(badge);
+    }
+  }
+
+  function ensureBadge(article) {
+    let badge = article.querySelector(`.${BADGE_CLASS}`);
+    if (badge) {
+      placeBadge(article, badge);
+      return badge;
+    }
+
     badge = document.createElement("div");
     badge.className = BADGE_CLASS;
     badge.setAttribute("aria-label", "X Heat score");
-    badge.innerHTML = '<span class="xheat-badge__label">热度</span><span class="xheat-badge__score">0</span>';
-    article.appendChild(badge);
+    badge.innerHTML = '<span class="xheat-badge__icon" aria-hidden="true">🌡️</span><span class="xheat-badge__rate">0/h</span>';
+    placeBadge(article, badge);
 
     return badge;
   }
@@ -287,11 +379,15 @@
     const ageHours = extractAgeHours(article);
     const heat = calculateHeat(metrics, ageHours);
     const badge = ensureBadge(article);
+    const level = heatLevel(heat);
 
-    badge.dataset.level = heatLevel(heat.score);
-    badge.querySelector(".xheat-badge__score").textContent = String(heat.score);
+    badge.dataset.level = level;
+    badge.setAttribute("aria-label", `X Heat ${compactRate(heat.perHour)}`);
+    badge.querySelector(".xheat-badge__icon").textContent = heatIcon(level);
+    badge.querySelector(".xheat-badge__rate").textContent = compactRate(heat.perHour);
     badge.title = [
       `热度: ${heat.score}/100`,
+      `速度: ${compactRate(heat.perHour)}`,
       `回复: ${compactNumber(metrics.replies)}`,
       `转发: ${compactNumber(metrics.reposts)}`,
       `喜欢: ${compactNumber(metrics.likes)}`,

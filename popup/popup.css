@@ -111,7 +111,11 @@ p {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #697882;
+  background: #2563eb;
+}
+
+.dot--cool {
+  background: #06b6d4;
 }
 
 .dot--warm {
@@ -119,9 +123,9 @@ p {
 }
 
 .dot--hot {
-  background: #ef4444;
+  background: #e11d48;
 }
 
 .dot--viral {
-  background: #db2777;
+  background: linear-gradient(90deg, #e11d48, #7c3aed);
 }
